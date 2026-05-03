@@ -5,6 +5,10 @@ export default function HomeScreen() {
 	const [score, setScore] = useState(0);
 	const [cookiesPerClick, setCookiesPerClick] = useState(1);
 
+	const handleCookiePress = () => {
+		setScore((prev) => prev + cookiesPerClick);
+	};
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>Cookie Clicker</Text>
@@ -20,10 +24,6 @@ export default function HomeScreen() {
 		</View>
 	);
 }
-
-const handleCookiePress = () => {
-	setScore((prev) => prev + cookiesPerClick);
-};
 
 const styles = StyleSheet.create({
 	container: {
