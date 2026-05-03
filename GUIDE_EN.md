@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
 	title: { fontSize: 36, fontWeight: "800", marginBottom: 12 },
 	score: { fontSize: 28, fontWeight: "700", marginBottom: 6 },
 	meta: { fontSize: 16, marginBottom: 20 },
-	cookie: { width: 220, height: 220 },
+	cookie: { width: 220, height: 220, marginTop: 200 },
 });
 ```
 
