@@ -42,17 +42,23 @@ Vytvořte složky pro `components` a pro `utils` - buď přes grafické rozhran�
 mkdir -p src/components src/screens src/utils
 ```
 
-### 5. Udržujte `App.tsx` co nejjednodušší
+### 5. Udržujte `App.js` co nejjednodušší
 
 Nahraďte výchozí uživatelské rozhraní jednoduchou kostrou:
 
-```tsx
+```js
+import { StatusBar } from "expo-status-bar";
+
 export default function App() {
-  return null;
+	return (
+		<>
+			<StatusBar style="auto" />
+		</>
+	);
 }
 ```
 
-Proč: `App.tsx` by měl sloužit primárně ke skládání obrazovek; samotná herní logika bude umístěna v `src/screens/HomeScreen.tsx`.
+Proč: `App.js` by měl sloužit primárně ke skládání obrazovek; samotná herní logika bude umístěna v `src/screens/HomeScreen.js`.
 
 ---
 
@@ -60,24 +66,42 @@ Proč: `App.tsx` by měl sloužit primárně ke skládání obrazovek; samotná 
 
 Cíl: Zobrazit skóre + obrázek sušenky a při stisknutí zvýšit skóre.
 
-## 2.1 Vytvoření `src/screens/HomeScreen.tsx`
+## 2.1 Vytvoření `src/screens/HomeScreen.js`
 
 Začněte kostrou komponenty a importy:
 
-```tsx
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+```js
+import React from "react";
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 
 export default function HomeScreen() {
-  return <View />;
+	return <View />;
 }
 ```
 
-## 2.2 Přidání herního stavu
+## 2.2 Zobrazení `HomeScreen` z `App.js`
+
+```js
+import { StatusBar } from "expo-status-bar";
+import HomeScreen from "./src/screens/HomeScreen";
+
+export default function App() {
+	return (
+		<>
+			<HomeScreen />
+			<StatusBar style="auto" />
+		</>
+	);
+}
+```
+
+Kontrolní bod: Po uložení by se na vašem telefonu měla zobrazit prázdná bílá obrazovka místo výchozího textu Expo. To znamená, že se vaše nová obrazovka úspěšně vykresluje!
+
+## 2.3 Přidání herního stavu
 
 Uvnitř komponenty `HomeScreen` přidejte dvě stavové proměnné:
 
-```tsx
+```js
 const [score, setScore] = React.useState(0);
 const [cookiesPerClick] = React.useState(1);
 ```
@@ -85,64 +109,59 @@ const [cookiesPerClick] = React.useState(1);
 - `score`: aktuální celkový počet sušenek
 - `cookiesPerClick`: kolik sušenek přidá jedno klepnutí
 
-## 2.3 Přidání funkce pro zpracování kliknutí
+## 2.4 Vykreslení uživatelského rozhraní
 
-```tsx
+Nahraďte `return <View />;` následujícím kódem:
+
+```js
+return (
+	<View style={styles.container}>
+		<Text style={styles.title}>Cookie Clicker</Text>
+		<Text style={styles.score}>Cookies: {score.toLocaleString()}</Text>
+		<Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
+
+		<TouchableOpacity onPress={handleCookiePress} activeOpacity={0.8}>
+			<Image
+				source={{
+					uri: "https://cdn-icons-png.flaticon.com/512/1047/1047711.png",
+				}}
+				style={styles.cookie}
+			/>
+		</TouchableOpacity>
+	</View>
+);
+```
+
+## 2.5 Přidání funkce pro zpracování kliknutí
+
+```js
 const handleCookiePress = () => {
-  setScore((prev) => prev + cookiesPerClick);
+	setScore((prev) => prev + cookiesPerClick);
 };
 ```
 
 Použijte funkcionální formu `setScore(prev => ...)`, abyste předešli problémům se zastaralým stavem (stale state).
 
-## 2.4 Vykreslení uživatelského rozhraní
-
-Nahraďte `return <View />;` následujícím kódem:
-
-```tsx
-return (
-  <View style={styles.container}>
-    <Text style={styles.title}>Cookie Clicker</Text>
-    <Text style={styles.score}>Cookies: {score.toLocaleString()}</Text>
-    <Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
-
-    <TouchableOpacity onPress={handleCookiePress} activeOpacity={0.8}>
-      <Image
-        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png' }}
-        style={styles.cookie}
-      />
-    </TouchableOpacity>
-  </View>
-);
-```
-
-## 2.5 Přidání pouze základních stylů
+## 2.6 Přidání pouze základních stylů
 
 Přidejte blok `StyleSheet.create` s těmito klíči:
 
-```tsx
+```js
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  title: { fontSize: 36, fontWeight: '800', marginBottom: 12 },
-  score: { fontSize: 28, fontWeight: '700', marginBottom: 6 },
-  meta: { fontSize: 16, marginBottom: 20 },
-  cookie: { width: 220, height: 220 },
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		paddingHorizontal: 20,
+	},
+	title: { fontSize: 36, fontWeight: "800", marginBottom: 12 },
+	score: { fontSize: 28, fontWeight: "700", marginBottom: 6 },
+	meta: { fontSize: 16, marginBottom: 20 },
+	cookie: { width: 220, height: 220 },
 });
 ```
 
-Barvy můžete upravit později; nejprve se zaměřte na chování.
-
-## 2.6 Zobrazení `HomeScreen` z `App.tsx`
-
-```tsx
-import HomeScreen from './src/screens/HomeScreen';
-
-export default function App() {
-  return <HomeScreen />;
-}
-```
-
-Kontrolní bod: klepnutí na sušenku by nyní mělo při každém stisku zvýšit skóre.
+Barvy můžete upravit později; nejprve se zaměřte na chování. Kontrolní bod: klepnutí na sušenku by nyní mělo při každém stisku zvýšit skóre.
 
 ---
 
@@ -154,15 +173,22 @@ Cíl: Sušenka se zmenší při stisknutí a vrátí se do původní velikosti p
 
 Aktualizujte své importy z React Native:
 
-```tsx
-import { Animated, View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+```js
+import {
+	Animated,
+	View,
+	Text,
+	TouchableOpacity,
+	Image,
+	StyleSheet,
+} from "react-native";
 ```
 
 ## 3.2 Přidání animované hodnoty pro měřítko (scale)
 
 Uvnitř `HomeScreen`:
 
-```tsx
+```js
 const scale = React.useRef(new Animated.Value(1)).current;
 ```
 
@@ -171,23 +197,23 @@ const scale = React.useRef(new Animated.Value(1)).current;
 
 ## 3.3 Přidání animací pro stisknutí a uvolnění
 
-```tsx
+```js
 const animateIn = () => {
-  Animated.spring(scale, {
-    toValue: 0.9,
-    useNativeDriver: true,
-    speed: 25,
-    bounciness: 4,
-  }).start();
+	Animated.spring(scale, {
+		toValue: 0.9,
+		useNativeDriver: true,
+		speed: 25,
+		bounciness: 4,
+	}).start();
 };
 
 const animateOut = () => {
-  Animated.spring(scale, {
-    toValue: 1,
-    useNativeDriver: true,
-    speed: 20,
-    bounciness: 6,
-  }).start();
+	Animated.spring(scale, {
+		toValue: 1,
+		useNativeDriver: true,
+		speed: 20,
+		bounciness: 6,
+	}).start();
 };
 ```
 
@@ -195,7 +221,7 @@ const animateOut = () => {
 
 Aktualizujte `TouchableOpacity`:
 
-```tsx
+```js
 <TouchableOpacity
   onPress={handleCookiePress}
   onPressIn={animateIn}
@@ -208,10 +234,10 @@ Aktualizujte `TouchableOpacity`:
 
 Nahraďte `<Image ... />` následujícím kódem:
 
-```tsx
+```js
 <Animated.Image
-  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png' }}
-  style={[styles.cookie, { transform: [{ scale }] }]}
+	source={{ uri: "https://cdn-icons-png.flaticon.com/512/1047/1047711.png" }}
+	style={[styles.cookie, { transform: [{ scale }] }]}
 />
 ```
 
@@ -227,7 +253,7 @@ Cíl: Počet sušenek se každou sekundu zvyšuje na základě zakoupených vyle
 
 Uvnitř `HomeScreen`:
 
-```tsx
+```js
 const [cookiesPerSecond, setCookiesPerSecond] = React.useState(0);
 const [grandmas, setGrandmas] = React.useState(0);
 const GRANDMA_COST = 50;
@@ -235,36 +261,38 @@ const GRANDMA_COST = 50;
 
 ## 4.2 Vytvoření pasivní smyčky (`useEffect`)
 
-```tsx
+```js
 React.useEffect(() => {
-  if (cookiesPerSecond <= 0) return;
+	if (cookiesPerSecond <= 0) return;
 
-  const timerId = setInterval(() => {
-    setScore((prev) => prev + cookiesPerSecond);
-  }, 1000);
+	const timerId = setInterval(() => {
+		setScore((prev) => prev + cookiesPerSecond);
+	}, 1000);
 
-  return () => clearInterval(timerId);
+	return () => clearInterval(timerId);
 }, [cookiesPerSecond]);
 ```
 
 Proč na tomto tvaru záleží:
+
 - Efekt se znovu spustí, když se změní `cookiesPerSecond`.
 - Funkce pro úklid (cleanup) zabraňuje tomu, aby se na sebe vrstvilo více intervalů.
 - Funkcionální forma `setScore` udržuje aktualizace spolehlivé.
 
 ## 4.3 Přidání funkce pro nákup Babičky (Grandma)
 
-```tsx
+```js
 const handleBuyGrandma = () => {
-  if (score < GRANDMA_COST) return;
+	if (score < GRANDMA_COST) return;
 
-  setScore((prev) => prev - GRANDMA_COST);
-  setCookiesPerSecond((prev) => prev + 1);
-  setGrandmas((prev) => prev + 1);
+	setScore((prev) => prev - GRANDMA_COST);
+	setCookiesPerSecond((prev) => prev + 1);
+	setGrandmas((prev) => prev + 1);
 };
 ```
 
 Toto je vaše první smyčka pro nákup vylepšení:
+
 1. Ověřte dostatek měny
 2. Utraťte sušenky
 3. Zvyšte produkci
@@ -273,22 +301,24 @@ Toto je vaše první smyčka pro nákup vylepšení:
 
 Blízko textu se skóre:
 
-```tsx
+```js
 <Text style={styles.meta}>Per second: +{cookiesPerSecond}</Text>
 <Text style={styles.meta}>Grandmas: {grandmas}</Text>
 ```
 
 ## 4.5 Přidání tlačítka pro nákup pod sušenku
 
-```tsx
+```js
 <TouchableOpacity style={styles.buyButton} onPress={handleBuyGrandma}>
-  <Text style={styles.buyButtonText}>Buy Grandma (+1/sec) - Cost: {GRANDMA_COST}</Text>
+	<Text style={styles.buyButtonText}>
+		Buy Grandma (+1/sec) - Cost: {GRANDMA_COST}
+	</Text>
 </TouchableOpacity>
 ```
 
 Přidejte styly pro tlačítko:
 
-```tsx
+```js
 buyButton: {
   marginTop: 12,
   backgroundColor: '#7a4a2f',
@@ -303,6 +333,7 @@ buyButtonText: {
 ```
 
 Kontrolní bod:
+
 1. Klikejte na sušenku, dokud nedosáhnete 50.
 2. Kupte jednu Babičku.
 3. Skóre by se nyní mělo automaticky zvyšovat o 1 každou sekundu.

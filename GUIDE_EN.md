@@ -36,23 +36,29 @@ You will use navigation and storage in later steps of the full plan, so install 
 
 ### 4. Create a clean source structure
 
-Create folders for `components` and for `utils` - either through the GUI or through bash;
+Create folders for `components`, `screens` and for `utils` - either through the GUI or through bash;
 
 ```bash
 mkdir -p src/components src/screens src/utils
 ```
 
-### 5. Keep `App.tsx` minimal
+### 5. Keep `App.js` minimal
 
 Replace the default UI with a simple shell:
 
-```tsx
+```js
+import { StatusBar } from "expo-status-bar";
+
 export default function App() {
-  return null;
+	return (
+		<>
+			<StatusBar style="auto" />
+		</>
+	);
 }
 ```
 
-Why: `App.tsx` should mainly compose screens; gameplay logic will live in `src/screens/HomeScreen.tsx`.
+Why: `App.js` should mainly compose screens; gameplay logic will live in `src/screens/HomeScreen.js`.
 
 ---
 
@@ -60,24 +66,42 @@ Why: `App.tsx` should mainly compose screens; gameplay logic will live in `src/s
 
 Goal: show score + cookie image, and increase score when pressed.
 
-## 2.1 Create `src/screens/HomeScreen.tsx`
+## 2.1 Create `src/screens/HomeScreen.js`
 
 Start with a component skeleton and imports:
 
-```tsx
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+```js
+import React from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 
 export default function HomeScreen() {
-  return <View />;
+	return <View />;
 }
 ```
 
-## 2.2 Add game state
+## 2.2 Mount `HomeScreen` from `App.js`
+
+```js
+import { StatusBar } from "expo-status-bar";
+import HomeScreen from "./src/screens/HomeScreen";
+
+export default function App() {
+	return (
+		<>
+			<HomeScreen />
+			<StatusBar style="auto" />
+		</>
+	);
+}
+```
+
+Checkpoint: When you save, your phone will show a blank white screen instead of the Expo default text. This means your new screen is successfully rendering!
+
+## 2.3 Add game state
 
 Inside `HomeScreen`, add two state variables:
 
-```tsx
+```js
 const [score, setScore] = React.useState(0);
 const [cookiesPerClick] = React.useState(1);
 ```
@@ -85,64 +109,59 @@ const [cookiesPerClick] = React.useState(1);
 - `score`: current cookie total
 - `cookiesPerClick`: how much one tap adds
 
-## 2.3 Add a click handler
+## 2.4 Render the UI
 
-```tsx
+Replace `return <View />;` with:
+
+```js
+return (
+	<View style={styles.container}>
+		<Text style={styles.title}>Cookie Clicker</Text>
+		<Text style={styles.score}>Cookies: {score.toLocaleString()}</Text>
+		<Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
+
+		<TouchableOpacity onPress={handleCookiePress} activeOpacity={0.8}>
+			<Image
+				source={{
+					uri: "https://cdn-icons-png.flaticon.com/512/1047/1047711.png",
+				}}
+				style={styles.cookie}
+			/>
+		</TouchableOpacity>
+	</View>
+);
+```
+
+## 2.5 Add a click handler
+
+```js
 const handleCookiePress = () => {
-  setScore((prev) => prev + cookiesPerClick);
+	setScore((prev) => prev + cookiesPerClick);
 };
 ```
 
 Use the functional `setScore(prev => ...)` form to avoid stale state issues.
 
-## 2.4 Render the UI
-
-Replace `return <View />;` with:
-
-```tsx
-return (
-  <View style={styles.container}>
-    <Text style={styles.title}>Cookie Clicker</Text>
-    <Text style={styles.score}>Cookies: {score.toLocaleString()}</Text>
-    <Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
-
-    <TouchableOpacity onPress={handleCookiePress} activeOpacity={0.8}>
-      <Image
-        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png' }}
-        style={styles.cookie}
-      />
-    </TouchableOpacity>
-  </View>
-);
-```
-
-## 2.5 Add only essential styles first
+## 2.6 Add only essential styles first
 
 Add a `StyleSheet.create` block with these keys:
 
-```tsx
+```js
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  title: { fontSize: 36, fontWeight: '800', marginBottom: 12 },
-  score: { fontSize: 28, fontWeight: '700', marginBottom: 6 },
-  meta: { fontSize: 16, marginBottom: 20 },
-  cookie: { width: 220, height: 220 },
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		paddingHorizontal: 20,
+	},
+	title: { fontSize: 36, fontWeight: "800", marginBottom: 12 },
+	score: { fontSize: 28, fontWeight: "700", marginBottom: 6 },
+	meta: { fontSize: 16, marginBottom: 20 },
+	cookie: { width: 220, height: 220 },
 });
 ```
 
-You can tweak colors later; focus on behavior first.
-
-## 2.6 Mount `HomeScreen` from `App.tsx`
-
-```tsx
-import HomeScreen from './src/screens/HomeScreen';
-
-export default function App() {
-  return <HomeScreen />;
-}
-```
-
-Checkpoint: tapping the cookie should increase the score every press.
+You can tweak colors later; focus on behavior first. Checkpoint: tapping the cookie should increase the score every press.
 
 ---
 
@@ -154,15 +173,22 @@ Goal: cookie shrinks on press-in and returns on press-out.
 
 Update your React Native imports:
 
-```tsx
-import { Animated, View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+```js
+import {
+	Animated,
+	View,
+	Text,
+	TouchableOpacity,
+	Image,
+	StyleSheet,
+} from "react-native";
 ```
 
 ## 3.2 Add an animated scale value
 
 Inside `HomeScreen`:
 
-```tsx
+```js
 const scale = React.useRef(new Animated.Value(1)).current;
 ```
 
@@ -171,23 +197,23 @@ const scale = React.useRef(new Animated.Value(1)).current;
 
 ## 3.3 Add press-in and press-out animations
 
-```tsx
+```js
 const animateIn = () => {
-  Animated.spring(scale, {
-    toValue: 0.9,
-    useNativeDriver: true,
-    speed: 25,
-    bounciness: 4,
-  }).start();
+	Animated.spring(scale, {
+		toValue: 0.9,
+		useNativeDriver: true,
+		speed: 25,
+		bounciness: 4,
+	}).start();
 };
 
 const animateOut = () => {
-  Animated.spring(scale, {
-    toValue: 1,
-    useNativeDriver: true,
-    speed: 20,
-    bounciness: 6,
-  }).start();
+	Animated.spring(scale, {
+		toValue: 1,
+		useNativeDriver: true,
+		speed: 20,
+		bounciness: 6,
+	}).start();
 };
 ```
 
@@ -195,7 +221,7 @@ const animateOut = () => {
 
 Update your `TouchableOpacity`:
 
-```tsx
+```js
 <TouchableOpacity
   onPress={handleCookiePress}
   onPressIn={animateIn}
@@ -208,10 +234,10 @@ Update your `TouchableOpacity`:
 
 Replace `<Image ... />` with:
 
-```tsx
+```js
 <Animated.Image
-  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png' }}
-  style={[styles.cookie, { transform: [{ scale }] }]}
+	source={{ uri: "https://cdn-icons-png.flaticon.com/512/1047/1047711.png" }}
+	style={[styles.cookie, { transform: [{ scale }] }]}
 />
 ```
 
@@ -227,7 +253,7 @@ Goal: cookies increase every second from owned upgrades.
 
 Inside `HomeScreen`:
 
-```tsx
+```js
 const [cookiesPerSecond, setCookiesPerSecond] = React.useState(0);
 const [grandmas, setGrandmas] = React.useState(0);
 const GRANDMA_COST = 50;
@@ -235,36 +261,38 @@ const GRANDMA_COST = 50;
 
 ## 4.2 Create the passive loop (`useEffect`)
 
-```tsx
+```js
 React.useEffect(() => {
-  if (cookiesPerSecond <= 0) return;
+	if (cookiesPerSecond <= 0) return;
 
-  const timerId = setInterval(() => {
-    setScore((prev) => prev + cookiesPerSecond);
-  }, 1000);
+	const timerId = setInterval(() => {
+		setScore((prev) => prev + cookiesPerSecond);
+	}, 1000);
 
-  return () => clearInterval(timerId);
+	return () => clearInterval(timerId);
 }, [cookiesPerSecond]);
 ```
 
 Why this shape matters:
+
 - The effect reruns when `cookiesPerSecond` changes.
 - Cleanup prevents multiple intervals from stacking.
 - Functional `setScore` keeps updates reliable.
 
 ## 4.3 Add a purchase handler for Grandma
 
-```tsx
+```js
 const handleBuyGrandma = () => {
-  if (score < GRANDMA_COST) return;
+	if (score < GRANDMA_COST) return;
 
-  setScore((prev) => prev - GRANDMA_COST);
-  setCookiesPerSecond((prev) => prev + 1);
-  setGrandmas((prev) => prev + 1);
+	setScore((prev) => prev - GRANDMA_COST);
+	setCookiesPerSecond((prev) => prev + 1);
+	setGrandmas((prev) => prev + 1);
 };
 ```
 
 This is your first upgrade loop:
+
 1. Validate enough currency
 2. Spend cookies
 3. Increase production
@@ -273,22 +301,24 @@ This is your first upgrade loop:
 
 Near your score text:
 
-```tsx
+```js
 <Text style={styles.meta}>Per second: +{cookiesPerSecond}</Text>
 <Text style={styles.meta}>Grandmas: {grandmas}</Text>
 ```
 
 ## 4.5 Add a buy button below the cookie
 
-```tsx
+```js
 <TouchableOpacity style={styles.buyButton} onPress={handleBuyGrandma}>
-  <Text style={styles.buyButtonText}>Buy Grandma (+1/sec) - Cost: {GRANDMA_COST}</Text>
+	<Text style={styles.buyButtonText}>
+		Buy Grandma (+1/sec) - Cost: {GRANDMA_COST}
+	</Text>
 </TouchableOpacity>
 ```
 
 Add button styles:
 
-```tsx
+```js
 buyButton: {
   marginTop: 12,
   backgroundColor: '#7a4a2f',
@@ -303,6 +333,7 @@ buyButtonText: {
 ```
 
 Checkpoint:
+
 1. Click cookie until you reach 50.
 2. Buy one Grandma.
 3. Score should now increase by 1 every second automatically.
