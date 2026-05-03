@@ -13,7 +13,7 @@
 ### 1. Vytvoření nové Expo aplikace
 
 ```bash
-npx create-expo-app CookieClicker
+npx create-expo-app CookieClicker --template blank
 cd CookieClicker
 ```
 

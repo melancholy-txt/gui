@@ -13,7 +13,7 @@
 ### 1. Create a new Expo app
 
 ```bash
-npx create-expo-app CookieClicker
+npx create-expo-app CookieClicker --template blank
 cd CookieClicker
 ```
 
