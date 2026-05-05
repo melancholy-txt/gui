@@ -15,6 +15,7 @@ export default function HomeScreen({ navigation }) {
 	const { score, updateScore, items, grandmas, setGrandmas } = useUserInventory();
 	const [cookiesPerClick, setCookiesPerClick] = useState(1);
 	const GRANDMA_COST = 50;
+	const [isUltimate, setIsUltimate] = useState(false);
 
 	useEffect(() => {
 		if (grandmas <= 0) return;
@@ -30,6 +31,12 @@ export default function HomeScreen({ navigation }) {
 		const bonusClick = items.reduce((newClickCount, { bonus }) => bonus ? newClickCount + bonus : newClickCount, 1);
 
 		setCookiesPerClick(bonusClick);
+
+		const ultimate = items.find(({ name }) => name === "ULTIMATE UPGRADE")
+
+		if (ultimate)
+			setIsUltimate(true);
+
 	}, [items]);
 
 	const scale = useRef(new Animated.Value(1)).current;
@@ -84,16 +91,26 @@ export default function HomeScreen({ navigation }) {
 		)
 	}
 
+	const formatNumber = num => {
+		if (num >= 1000000) {
+			return (num / 1000000).toFixed(1).replace(".0", "") + " mil";
+		} else if (num >= 1000) {
+			return (num / 1000).toFixed(1).replace(".0", "") + "k";
+		} else {
+			return num.toString();
+		}
+	};
+
 	return (
 		<View style={styles.container}>
 			{
 				getBackground()
 			}
-			<Text style={styles.title}>Bebe Clicker</Text>
-			<Text style={styles.score}>Cookies: {score}</Text>
-			<Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
-			<Text style={styles.meta}>Per second: +{grandmas}</Text>
-			<Text style={styles.meta}>Grandmas: {grandmas}</Text>
+			<Text style={isUltimate ? styles.whiteTitle : styles.title}>Bebe Clicker</Text>
+			<Text style={isUltimate ? styles.whiteScore : styles.score}>Cookies: {formatNumber(score)}</Text>
+			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per click: +{cookiesPerClick}</Text>
+			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per second: +{grandmas}</Text>
+			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Grandmas: {grandmas}</Text>
 
 			<TouchableOpacity
 				onPress={handleCookiePress}
@@ -143,8 +160,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 	},
 	title: { fontSize: 36, fontWeight: "800", marginBottom: 12 },
+	whiteTitle: { fontSize: 36, fontWeight: "800", marginBottom: 12, color: "#fff" },
 	score: { fontSize: 28, fontWeight: "700", marginBottom: 6 },
+	whiteScore: { fontSize: 28, fontWeight: "700", marginBottom: 6, color: "#fff" },
 	meta: { fontSize: 16, marginBottom: 8 },
+	whiteMeta: { fontSize: 16, marginBottom: 8, color: "#fff" },
 	cookie: { width: 300, height: 300, marginTop: 100 },
 	buyButton: {
 		marginTop: 30,

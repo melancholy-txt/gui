@@ -5,14 +5,17 @@ import { globalStyles } from '../styles'
 import { useUserInventory } from '../contexts/user-inventory'
 
 export default function ShopItem({ item }) {
-    const { id, name, price, description, image } = item;
-    const { items, addItem, removeItem, score, updateScore } = useUserInventory();
+    const { id, name, price, description, image, grandmas } = item;
+    const { items, addItem, removeItem, score, updateScore, setGrandmas } = useUserInventory();
 
     const buyItem = () => {
         if (score < price) return;
 
         addItem(item);
         updateScore(-price);
+
+        if (grandmas)
+            setGrandmas(grandmas);
     }
 
     const sellItem = () => {

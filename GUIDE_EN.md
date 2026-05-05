@@ -869,6 +869,122 @@ const handleBuyGrandma = () => {
 };
 ```
 
+## Step 7: Ultimate upgrade + polishing
+
+## 7.1 add mp4 to assets
+To `assets/` add `ultimate.mp4`.
+
+## 7.1 edit StoreMenu
+In `StoreMenu.js` edit the item ULTIMATE UPGRADE to:
+```js
+{
+    id: 6,
+    name: "ULTIMATE UPGRADE",
+    price: 10000,
+    description: "???",
+    bonus: 10000000,
+    grandmas: 10000,
+    image: require("../assets/ultimate.jpg"),
+    background: require("../assets/ultimate.mp4")
+}
+```
+
+## 7.2 edit ShopItem
+In `ShopItem.js` add condition to `js buyItem()` function. Now it looks like this:
+
+```js
+const { items, addItem, removeItem, score, updateScore, setGrandmas } = useUserInventory();
+
+const buyItem = () => {
+    if (score < price) return;
+
+    addItem(item);
+    updateScore(-price);
+
+    if (grandmas)
+        setGrandmas(grandmas);
+}
+```
+
+## 7.2 edit HomeScreen
+In `HomeScreen.js` we edit styles to this:
+
+```js
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		paddingHorizontal: 20,
+	},
+	title: { fontSize: 36, fontWeight: "800", marginBottom: 12 },
+	whiteTitle: { fontSize: 36, fontWeight: "800", marginBottom: 12, color: "#fff" },
+	score: { fontSize: 28, fontWeight: "700", marginBottom: 6 },
+	whiteScore: { fontSize: 28, fontWeight: "700", marginBottom: 6, color: "#fff" },
+	meta: { fontSize: 16, marginBottom: 8 },
+	whiteMeta: { fontSize: 16, marginBottom: 8, color: "#fff" },
+	cookie: { width: 300, height: 300, marginTop: 100 },
+	buyButton: {
+		marginTop: 30,
+		backgroundColor: "#7a4a2f",
+		paddingVertical: 12,
+		paddingHorizontal: 16,
+		borderRadius: 10,
+	},
+	buyButtonText: {
+		color: "#fff",
+		fontWeight: "700",
+	},
+});
+```
+
+Then add new state and edit `useEffect` listening to items like this:
+```js
+	const [isUltimate, setIsUltimate] = useState(false);
+
+	useEffect(() => {
+		const bonusClick = items.reduce((newClickCount, { bonus }) => bonus ? newClickCount + bonus : newClickCount, 1);
+
+		setCookiesPerClick(bonusClick);
+
+		const ultimate = items.find(({ name }) => name === "ULTIMATE UPGRADE")
+
+		if (ultimate)
+			setIsUltimate(true);
+
+	}, [items]);
+```
+
+In `<View />` component we find the main text and edit it to this:
+
+```js
+<Text style={isUltimate ? styles.whiteTitle : styles.title}>Bebe Clicker</Text>
+<Text style={isUltimate ? styles.whiteScore : styles.score}>Cookies: {score}</Text>
+<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per click: +{cookiesPerClick}</Text>
+<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per second: +{grandmas}</Text>
+<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Grandmas: {grandmas}</Text>
+```
+
+## 7.3 Format score in HomeScreen
+Lastly in `HomeScreen.js` we add new function:
+
+```js
+const formatNumber = num => {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(".0", "") + " mil";
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(".0", "") + "k";
+    } else {
+        return num.toString();
+    }
+};
+```
+
+And edit it in render:
+```js
+<Text style={isUltimate ? styles.whiteScore : styles.score}>Cookies: {formatNumber(score)}</Text>
+```
+
 ---
 
 ## Common mistakes (and quick fixes)
