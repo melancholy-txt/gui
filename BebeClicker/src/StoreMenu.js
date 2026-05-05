@@ -10,7 +10,7 @@ export const menu = [
     {
         id: 2,
         name: "Background Animation",
-        price: 1,
+        price: 250,
         background: require("../assets/background1.mp4"),
         image: require("../assets/background_bebe.png")
     },
@@ -25,7 +25,7 @@ export const menu = [
     {
         id: 4,
         name: "Prettier Bebe",
-        price: 1,
+        price: 1000,
         image: require("../assets/lepsibebe.png")
     },
     {
@@ -38,8 +38,11 @@ export const menu = [
     {
         id: 6,
         name: "ULTIMATE UPGRADE",
-        price: 5000,
+        price: 10000,
         description: "???",
-        image: require("../assets/ultimate.jpg")
+        bonus: 10000000,
+        grandmas: 10000,
+        image: require("../assets/ultimate.jpg"),
+        background: require("../assets/ultimate.mp4")
     }
 ]
