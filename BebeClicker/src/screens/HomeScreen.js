@@ -12,21 +12,19 @@ import { useUserInventory } from "../contexts/user-inventory";
 import { Video, ResizeMode } from 'expo-av';
 
 export default function HomeScreen({ navigation }) {
-	const { score, updateScore, items } = useUserInventory();
+	const { score, updateScore, items, grandmas, setGrandmas } = useUserInventory();
 	const [cookiesPerClick, setCookiesPerClick] = useState(1);
-	const [cookiesPerSecond, setCookiesPerSecond] = useState(0);
-	const [grandmas, setGrandmas] = useState(0);
 	const GRANDMA_COST = 50;
 
 	useEffect(() => {
-		if (cookiesPerSecond <= 0) return;
+		if (grandmas <= 0) return;
 
 		const timerId = setInterval(() => {
-			updateScore(cookiesPerSecond);
+			updateScore(grandmas);
 		}, 1000);
 
 		return () => clearInterval(timerId);
-	}, [cookiesPerSecond]);
+	}, [grandmas]);
 
 	useEffect(() => {
 		const bonusClick = items.reduce((newClickCount, { bonus }) => bonus ? newClickCount + bonus : newClickCount, 1);
@@ -44,7 +42,6 @@ export default function HomeScreen({ navigation }) {
 		if (score < GRANDMA_COST) return;
 
 		updateScore(-GRANDMA_COST);
-		setCookiesPerSecond((prev) => prev + 1);
 		setGrandmas((prev) => prev + 1);
 	};
 
@@ -95,7 +92,7 @@ export default function HomeScreen({ navigation }) {
 			<Text style={styles.title}>Bebe Clicker</Text>
 			<Text style={styles.score}>Cookies: {score}</Text>
 			<Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
-			<Text style={styles.meta}>Per second: +{cookiesPerSecond}</Text>
+			<Text style={styles.meta}>Per second: +{grandmas}</Text>
 			<Text style={styles.meta}>Grandmas: {grandmas}</Text>
 
 			<TouchableOpacity
