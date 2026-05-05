@@ -338,6 +338,9 @@ Kontrolní bod:
 2. Kupte jednu Babičku.
 3. Skóre by se nyní mělo automaticky zvyšovat o 1 každou sekundu.
 
+## Krok 5: Vytvoření obchodu
+
+
 ---
 
 ## Časté chyby (a rychlá řešení)

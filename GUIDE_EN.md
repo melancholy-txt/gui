@@ -338,6 +338,431 @@ Checkpoint:
 2. Buy one Grandma.
 3. Score should now increase by 1 every second automatically.
 
+## Step 5: Add Store
+
+## 5.1 Create user-inventory.js context
+Inside `src/` create new folder `contexts` then create a new file `user-inventory.js`. Inside this file define:
+
+```js
+import React, { createContext, useContext, useState } from 'react';
+
+const UserInventoryContext = createContext({
+    score: 0,
+    items: [],
+    addItem: () => { },
+    removeItem: () => { },
+    updateScore: () => { },
+});
+
+export function UserInventoryProvider({ children }) {
+    const [score, setScore] = useState(0);
+    const [items, setItems] = useState([]);
+
+    const addItem = item => {
+        setItems(prev => [...prev, item]);
+    };
+
+    const removeItem = itemId => {
+        setItems(prev => prev.filter(({ id }) => itemId !== id));
+    };
+
+    const updateScore = amount => {
+        setScore(prev => prev + amount);
+    };
+
+
+    return (
+        <UserInventoryContext.Provider value={{
+            score,
+            items,
+            addItem,
+            removeItem,
+            updateScore
+        }}>
+            {children}
+        </UserInventoryContext.Provider>
+    );
+}
+
+export function useUserInventory() {
+    return useContext(UserInventoryContext);
+}
+```
+The `user-inventory.js` file implements a **React Context** for managing the user's game state in the BebeClicker app. It provides centralized state management for the player's score (Bebe count) and inventory of purchased items, allowing components throughout the app to access and modify this data. This context is essential for the shop system, enabling components to read the score, check ownership, and perform buy/sell transactions. It ensures state consistency across the app. `App.js` must be wrapped with `UserInventoryProvider` to access the context.
+
+## 5.2 App.js navigation + implementation of context
+Install new package for navigation using:
+```bash
+npm i @react-navigation/native-stack
+```
+Now edit the `App.js` to this:
+
+```js
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import HomeScreen from "./src/screens/HomeScreen";
+import Store from "./src/screens/Store";
+import { UserInventoryProvider } from "./src/contexts/user-inventory";
+
+const Stack = createNativeStackNavigator();
+
+export default function App() {
+	return (
+		<UserInventoryProvider>
+			<NavigationContainer>
+				<Stack.Navigator initialRouteName="Home">
+					<Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+					<Stack.Screen name="Store" component={Store} />
+				</Stack.Navigator>
+			</NavigationContainer>
+		</UserInventoryProvider>
+	);
+}
+```
+- **Navigation setup**
+  - Uses `NavigationContainer` from `@react-navigation/native`
+  - Creates a native stack navigator with `createNativeStackNavigator()`
+  - Defines two screens:
+    - `Home` → `HomeScreen`
+    - `Store` → `Store`
+
+- **Context provider**
+  - Wraps the entire app inside `UserInventoryProvider` from `./src/contexts/user-inventory`
+  - This makes `score`, `items`, and inventory methods available to all child screens
+
+- **App layout**
+  - `HomeScreen` launches first via `initialRouteName="Home"`
+  - The home screen hides its header with `options={{ headerShown: false }}`
+
+## 5.3 Create Store.js page
+In `src/screens` create new file `Store.js`:
+```js
+import React from 'react';
+import { Text, ScrollView, View } from 'react-native';
+import ShopItem from '../components/ShopItem';
+import { menu } from '../ShopList';
+import { globalStyles } from '../styles';
+import { useUserInventory } from '../contexts/user-inventory';
+
+export default function Store() {
+    const { score } = useUserInventory();
+    return (
+        <ScrollView>
+            <View style={{ ...globalStyles.rowContainer, padding: 10 }}>
+                <Text style={globalStyles.text}>
+                    Bebe Count:
+                </Text>
+                <Text style={globalStyles.boldText}>
+                    {score} Bebe
+                </Text>
+            </View>
+            {
+                menu?.map(item => <ShopItem key={item?.id} item={item} />)
+            }
+        </ScrollView>
+    );
+}
+```
+- **Score Display**: Shows the user's current "Bebe Count" at the top of the screen, retrieved from the user inventory context.
+- **Shop Items List**: Renders a scrollable list of all shop items from the `menu` array. Each item is displayed using the `ShopItem` component, allowing users to buy or sell items based on their current score and inventory.
+- **Scrollable Interface**: Uses a `ScrollView` to handle long lists of items, ensuring all content is accessible on smaller screens.
+
+## 5.4 Create Store Shopping list
+In folder `src/` create a file `Menu.js` where we will be defining items available in Store.js:
+
+```js
+export const menu = [
+    {
+        id: 1,
+        name: "Better Clicker",
+        price: 60,
+        description: "+5 Bebe per click",
+        bonus: 5,
+        image: require("../assets/betterclicker.jpg")
+    },
+    {
+        id: 2,
+        name: "Background Animation",
+        price: 1,
+        background: require("../assets/background1.mp4"),
+        image: require("../assets/background_bebe.png")
+    },
+    {
+        id: 3,
+        name: "Monster",
+        price: 500,
+        description: "+100 Bebe per click",
+        bonus: 100,
+        image: require("../assets/monster.png")
+    },
+    {
+        id: 4,
+        name: "Prettier Bebe",
+        price: 1,
+        image: require("../assets/lepsibebe.png")
+    },
+    {
+        id: 5,
+        name: "Background Animation 2",
+        price: 2000,
+        background: require("../assets/background2.mp4"),
+        image: require("../assets/background2.jpg")
+    },
+    {
+        id: 6,
+        name: "ULTIMATE UPGRADE",
+        price: 5000,
+        description: "???",
+        image: require("../assets/ultimate.jpg")
+    }
+]
+```
+
+## 5.5 Create ShopItem
+In `src/` folder create a new folder `components` and add new `ShopItem.js`. Inside `ShopItem.js`:
+```js
+
+import React from 'react'
+import { View, Text, TouchableOpacity, Image } from 'react-native'
+import { globalStyles } from '../styles'
+import { useUserInventory } from '../contexts/user-inventory'
+
+export default function ShopItem({ item }) {
+    const { id, name, price, description, image } = item;
+    const { items, addItem, removeItem, score, updateScore } = useUserInventory();
+
+    const buyItem = () => {
+        if (score < price) return;
+
+        addItem(item);
+        updateScore(-price);
+    }
+
+    const sellItem = () => {
+        removeItem(id);
+        updateScore(price);
+    }
+
+    return (
+        <View style={{ ...globalStyles.columnContainer, padding: 10 }}>
+            <Image
+                source={image}
+                resizeMode='contain'
+                style={{
+                    height: 100,
+                    width: 100,
+                    borderRadius: 15
+                }}
+            />
+            <Text style={globalStyles.text}>
+                {name} {description && `(${description})`}
+            </Text>
+            <View style={globalStyles.rowContainer}>
+                {
+                    items?.find(item => item.id === id) ?
+                        <TouchableOpacity style={globalStyles.button} onPress={sellItem}>
+                            <Text style={globalStyles.buttonText}>
+                                Sell
+                            </Text>
+                        </TouchableOpacity>
+                        :
+                        <TouchableOpacity style={globalStyles.button} onPress={buyItem}>
+                            <Text style={globalStyles.buttonText}>
+                                Buy
+                            </Text>
+                        </TouchableOpacity>
+                }
+
+                <Text style={globalStyles.boldText}>
+                    {price} Bebe
+                </Text>
+            </View>
+        </View>
+    )
+}
+```
+This component encapsulates the shop item logic, so the store screen can simply render a list of `ShopItem` components. It keeps item purchase/sale behavior isolated and reusable across the app.
+
+- Renders one item card with:
+  - item image
+  - item name
+  - optional description
+  - item price
+- Shows either a **Buy** or **Sell** button depending on whether the item is already in the user's inventory
+- Updates the global game state when an item is bought or sold
+- On buy:
+  - adds the item to inventory
+  - subtracts the item price from the score
+- On sell:
+  - removes the item from inventory
+  - adds the item price back to the score
+
+## 5.6 Edit HomeScreen.js
+Inside `HomeScreen.js` we will change the code to this:
+
+```js
+import React, { useEffect, useRef, useState } from "react";
+import {
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+	Image,
+	Animated,
+} from "react-native";
+import { globalStyles } from "../styles";
+import { useUserInventory } from "../contexts/user-inventory";
+import { Video, ResizeMode } from 'expo-av';
+
+export default function HomeScreen({ navigation }) {
+	const { score, updateScore, items } = useUserInventory();
+	const [cookiesPerClick, setCookiesPerClick] = useState(1);
+	const [cookiesPerSecond, setCookiesPerSecond] = useState(0);
+	const [grandmas, setGrandmas] = useState(0);
+	const GRANDMA_COST = 50;
+
+	useEffect(() => {
+		if (cookiesPerSecond <= 0) return;
+
+		const timerId = setInterval(() => {
+			updateScore(cookiesPerSecond);
+		}, 1000);
+
+		return () => clearInterval(timerId);
+	}, [cookiesPerSecond]);
+
+	useEffect(() => {
+		const bonusClick = items.reduce((newClickCount, { bonus }) => bonus ? newClickCount + bonus : newClickCount, 1);
+
+		setCookiesPerClick(bonusClick);
+	}, [items]);
+
+	const scale = useRef(new Animated.Value(1)).current;
+
+	const handleCookiePress = () => {
+		updateScore(cookiesPerClick);
+	};
+
+	const handleBuyGrandma = () => {
+		if (score < GRANDMA_COST) return;
+
+		updateScore(-GRANDMA_COST);
+		setCookiesPerSecond((prev) => prev + 1);
+		setGrandmas((prev) => prev + 1);
+	};
+
+	const animateIn = () => {
+		Animated.spring(scale, {
+			toValue: 0.9,
+			useNativeDriver: true,
+			speed: 25,
+			bounciness: 4,
+		}).start();
+	};
+
+	const animateOut = () => {
+		Animated.spring(scale, {
+			toValue: 1,
+			useNativeDriver: true,
+			speed: 20,
+			bounciness: 6,
+		}).start();
+	};
+
+	const getBackground = () => {
+		const background = items?.filter(({ background }) => background);
+
+		if (background.length <= 0)
+			return null
+
+
+		const source = background[background?.length - 1]?.background;
+
+		return (
+			<Video
+				source={source}
+				style={StyleSheet.absoluteFill}
+				shouldPlay
+				isLooping
+				isMuted
+				resizeMode={ResizeMode.STRETCH}
+			/>
+		)
+	}
+
+	return (
+		<View style={styles.container}>
+			{
+				getBackground()
+			}
+			<Text style={styles.title}>Bebe Clicker</Text>
+			<Text style={styles.score}>Cookies: {score}</Text>
+			<Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
+			<Text style={styles.meta}>Per second: +{cookiesPerSecond}</Text>
+			<Text style={styles.meta}>Grandmas: {grandmas}</Text>
+
+			<TouchableOpacity
+				onPress={handleCookiePress}
+				activeOpacity={1}
+				onPressIn={animateIn}
+				onPressOut={animateOut}
+			>
+				<Animated.Image
+					source={items.find(({ name }) => name === "Prettier Bebe") ? items.find(({ id }) => id === 4).image : require("../../assets/bebe.png")}
+					style={[styles.cookie, { transform: [{ scale }] }]}
+					resizeMode={"contain"}
+				/>
+			</TouchableOpacity>
+			<TouchableOpacity style={styles.buyButton} onPress={handleBuyGrandma}>
+				<Text style={styles.buyButtonText}>
+					Buys Grandma (+1/sec) - Cost: {GRANDMA_COST}
+				</Text>
+			</TouchableOpacity>
+			<TouchableOpacity style={{ ...globalStyles.button, marginTop: 10 }} onPress={() => { navigation.navigate("Store") }}>
+				<Text style={globalStyles.buttonText}>
+					Go To Store
+				</Text>
+			</TouchableOpacity>
+			{
+				items.find(({ name }) => name === "Monster") &&
+				<Image
+					source={items.find(({ name }) => name === "Monster")?.image}
+					style={{
+						width: 100,
+						height: 100,
+						top: 160,
+						right: 0,
+						position: "absolute"
+					}}
+					resizeMode="contain"
+				/>
+			}
+		</View>
+	);
+}
+```
+Install expo-av for video support:
+```bash
+npm i expo-av
+```
+
+- Replaced local score state with shared inventory context:
+  - now imports `useUserInventory`
+  - uses `score`, `updateScore`, and `items` from context
+
+- Added background video support:
+  - imports `Video` and `ResizeMode` from `expo-av`
+  - `getBackground()` renders latest purchased background item
+
+- Added conditional visuals based on inventory:
+  - special cookie image if `"Prettier Bebe"` is owned
+  - monster image appears if `"Monster"` is owned
+
+- Added navigation to Store:
+  - `Go To Store` button uses `navigation.navigate("Store")`
+
 ---
 
 ## Common mistakes (and quick fixes)
