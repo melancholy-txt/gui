@@ -763,6 +763,112 @@ npm i expo-av
 - Added navigation to Store:
   - `Go To Store` button uses `navigation.navigate("Store")`
 
+## Step 6: Save progress to phone storage
+
+## 6.1 Install async-storage library
+In terminal run this:
+```bash
+npm i @react-native-async-storage/async-storage
+```
+
+## 6.2 Edit user-inventory.js context
+In `user-inventory.js` add AsyncStorage and a storage key:
+```js
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const STORAGE_KEY = "@bebe_clicker_save";
+```
+
+## 6.3 Add functions to user-inventory.js context
+In `user-inventory.js` inside `<UserInventoryProvider>` add these functions:
+
+```js
+const [grandmas, setGrandmas] = useState(0);
+
+const saveData = async (data) => {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn("Failed to save game:", error);
+  }
+};
+
+const loadData = async () => {
+        try {
+            const json = await AsyncStorage.getItem(STORAGE_KEY);
+            if (!json) return;
+
+            const saved = JSON.parse(json);
+
+            if (saved.score != null)
+                setScore(saved.score);
+
+            if (Array.isArray(saved.items))
+                setItems(saved.items);
+
+            if (saved.grandmas != null)
+                setGrandmas(saved.grandmas);
+        } catch (error) {
+            console.warn("Failed to load game:", error);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    useEffect(() => {
+        saveData({ score, items, grandmas });
+    }, [score, items, grandmas]);
+```
+
+And edit the return value to:
+
+```js
+ return (
+        <UserInventoryContext.Provider value={{
+            score,
+            items,
+            addItem,
+            removeItem,
+            updateScore,
+            grandmas,
+            setGrandmas
+        }}>
+            {children}
+        </UserInventoryContext.Provider>
+    );
+```
+In `HomeScreen.js` get rid of `cookiesPerSecond`:
+
+```js
+const [cookiesPerSecond, setCookiesPerSecond] = useState(0);
+```
+
+We will be using grandmas to add point per second. We changed these lines:
+```js
+const { score, updateScore, items, grandmas, setGrandmas } = useUserInventory();
+const [cookiesPerClick, setCookiesPerClick] = useState(1);
+const GRANDMA_COST = 50;
+
+useEffect(() => {
+	if (grandmas <= 0) return;
+
+	const timerId = setInterval(() => {
+		updateScore(grandmas);
+	}, 1000);
+
+	return () => clearInterval(timerId);
+}, [grandmas]);
+
+const handleBuyGrandma = () => {
+	if (score < GRANDMA_COST) return;
+
+	updateScore(-GRANDMA_COST);
+	setGrandmas((prev) => prev + 1);
+};
+```
+
 ---
 
 ## Common mistakes (and quick fixes)
