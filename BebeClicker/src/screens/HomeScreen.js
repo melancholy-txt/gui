@@ -7,9 +7,12 @@ import {
 	Image,
 	Animated,
 } from "react-native";
+import { globalStyles } from "../styles";
+import { useUserInventory } from "../contexts/user-inventory";
+import { Video, ResizeMode } from 'expo-av';
 
-export default function HomeScreen() {
-	const [score, setScore] = useState(0);
+export default function HomeScreen({ navigation }) {
+	const { score, updateScore, items } = useUserInventory();
 	const [cookiesPerClick, setCookiesPerClick] = useState(1);
 	const [cookiesPerSecond, setCookiesPerSecond] = useState(0);
 	const [grandmas, setGrandmas] = useState(0);
@@ -19,22 +22,28 @@ export default function HomeScreen() {
 		if (cookiesPerSecond <= 0) return;
 
 		const timerId = setInterval(() => {
-			setScore((prev) => prev + cookiesPerSecond);
+			updateScore(cookiesPerSecond);
 		}, 1000);
 
 		return () => clearInterval(timerId);
 	}, [cookiesPerSecond]);
 
+	useEffect(() => {
+		const bonusClick = items.reduce((newClickCount, { bonus }) => bonus ? newClickCount + bonus : newClickCount, 1);
+
+		setCookiesPerClick(bonusClick);
+	}, [items]);
+
 	const scale = useRef(new Animated.Value(1)).current;
 
 	const handleCookiePress = () => {
-		setScore((prev) => prev + cookiesPerClick);
+		updateScore(cookiesPerClick);
 	};
 
 	const handleBuyGrandma = () => {
 		if (score < GRANDMA_COST) return;
 
-		setScore((prev) => prev - GRANDMA_COST);
+		updateScore(-GRANDMA_COST);
 		setCookiesPerSecond((prev) => prev + 1);
 		setGrandmas((prev) => prev + 1);
 	};
@@ -57,10 +66,34 @@ export default function HomeScreen() {
 		}).start();
 	};
 
+	const getBackground = () => {
+		const background = items?.filter(({ background }) => background);
+
+		if (background.length <= 0)
+			return null
+
+
+		const source = background[background?.length - 1]?.background;
+
+		return (
+			<Video
+				source={source}
+				style={StyleSheet.absoluteFill}
+				shouldPlay
+				isLooping
+				isMuted
+				resizeMode={ResizeMode.STRETCH}
+			/>
+		)
+	}
+
 	return (
 		<View style={styles.container}>
-			<Text style={styles.title}>Cookie Clicker</Text>
-			<Text style={styles.score}>Cookies: {score.toString()}</Text>
+			{
+				getBackground()
+			}
+			<Text style={styles.title}>Bebe Clicker</Text>
+			<Text style={styles.score}>Cookies: {score}</Text>
 			<Text style={styles.meta}>Per click: +{cookiesPerClick}</Text>
 			<Text style={styles.meta}>Per second: +{cookiesPerSecond}</Text>
 			<Text style={styles.meta}>Grandmas: {grandmas}</Text>
@@ -72,15 +105,35 @@ export default function HomeScreen() {
 				onPressOut={animateOut}
 			>
 				<Animated.Image
-					source={require("../../assets/bebe.png")}
+					source={items.find(({ name }) => name === "Prettier Bebe") ? items.find(({ id }) => id === 4).image : require("../../assets/bebe.png")}
 					style={[styles.cookie, { transform: [{ scale }] }]}
+					resizeMode={"contain"}
 				/>
 			</TouchableOpacity>
 			<TouchableOpacity style={styles.buyButton} onPress={handleBuyGrandma}>
 				<Text style={styles.buyButtonText}>
-                    Buys Grandma (+1/sec) - Cost: {GRANDMA_COST}
-                </Text>
+					Buys Grandma (+1/sec) - Cost: {GRANDMA_COST}
+				</Text>
 			</TouchableOpacity>
+			<TouchableOpacity style={{ ...globalStyles.button, marginTop: 10 }} onPress={() => { navigation.navigate("Store") }}>
+				<Text style={globalStyles.buttonText}>
+					Go To Store
+				</Text>
+			</TouchableOpacity>
+			{
+				items.find(({ name }) => name === "Monster") &&
+				<Image
+					source={items.find(({ name }) => name === "Monster")?.image}
+					style={{
+						width: 100,
+						height: 100,
+						top: 160,
+						right: 0,
+						position: "absolute"
+					}}
+					resizeMode="contain"
+				/>
+			}
 		</View>
 	);
 }
