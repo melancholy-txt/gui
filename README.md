@@ -5,7 +5,9 @@ React Native Cookie Clicker. Tutorial project.
 ## Guides
 
 - [English Guide](GUIDE_EN.md)
-- [Czech Guide](GUIDE_CZ.md)
+
+## File with all assets
+- folder with all assets: https://drive.google.com/drive/folders/1sGZvwumg89R-U8ssGwb2VLMn3brVNs_t?usp=sharing
 
 ## Tech
 
