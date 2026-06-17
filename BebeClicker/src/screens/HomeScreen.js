@@ -18,7 +18,7 @@ export default function HomeScreen({ navigation }) {
 	const [isUltimate, setIsUltimate] = useState(false);
 	const [isTimerActive, setIsTimerActive] = useState(false);
 	const [timerClicks, setTimerClicks] = useState(0);
-	const [timeLeft, setTimeLeft] = useState(60);
+	const [timeLeft, setTimeLeft] = useState(10);
 
 	useEffect(() => {
 		if (grandmas <= 0) return;
@@ -46,6 +46,10 @@ export default function HomeScreen({ navigation }) {
 
 	const handleCookiePress = () => {
 		updateScore(cookiesPerClick);
+
+		if (isTimerActive) {
+			setTimerClicks((prev) => prev + 1);
+		}
 	};
 
 	const handleBuyGrandma = () => {
@@ -107,22 +111,20 @@ export default function HomeScreen({ navigation }) {
 	useEffect(() => {
 		let timer;
 
-		if (isTimerActive && timeLeft == 60) {
+		if (isTimerActive && timeLeft > 0) {
 			timer = setInterval(() => {
 				setTimeLeft(prev => prev - 1)
 			}, 1000);
 		}
 		else {
 			setIsTimerActive(false);
-			setTimeLeft(60);
-			console.log("hovno");
-
+			setTimeLeft(10);
 		}
 
 		return () => {
 			clearInterval(timer);
 		}
-	}, [isTimerActive])
+	}, [isTimerActive, timeLeft])
 
 	return (
 		<View style={styles.container}>
@@ -131,11 +133,18 @@ export default function HomeScreen({ navigation }) {
 			}
 			<Text style={isUltimate ? styles.whiteTitle : styles.title}>Bebe Clicker</Text>
 			<Text style={isUltimate ? styles.whiteScore : styles.score}>Cookies: {formatNumber(score)}</Text>
-			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per click: +{cookiesPerClick}</Text>
+			{/* <Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per click: +{cookiesPerClick}</Text>
 			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per second: +{grandmas}</Text>
-			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Grandmas: {grandmas}</Text>
+			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Grandmas: {grandmas}</Text> */}
 			<Text style={isUltimate ? styles.whiteScore : styles.score}>{timeLeft}</Text>
-
+			<Text style={isUltimate ? styles.whiteScore : styles.score}>
+				{
+					isTimerActive ?
+						"Test running..."
+						:
+						`Clicks per second: ${timerClicks / 10}`
+				}
+			</Text>
 			<TouchableOpacity
 				onPress={handleCookiePress}
 				activeOpacity={1}
@@ -159,8 +168,16 @@ export default function HomeScreen({ navigation }) {
 				</Text>
 			</TouchableOpacity>
 			<TouchableOpacity style={{ ...globalStyles.button, marginTop: 10 }}>
-				<Text style={globalStyles.buttonText} onPress={() => { setIsTimerActive(true) }}>
-					Start timer
+				<Text style={globalStyles.buttonText} onPress={() => {
+					setIsTimerActive(true)
+					setTimerClicks(0)
+				}}>
+					{
+						isTimerActive ?
+							"Timer is running"
+							:
+							"Start timer"
+					}
 				</Text>
 			</TouchableOpacity>
 			{
