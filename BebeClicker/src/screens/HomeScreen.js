@@ -16,6 +16,9 @@ export default function HomeScreen({ navigation }) {
 	const [cookiesPerClick, setCookiesPerClick] = useState(1);
 	const GRANDMA_COST = 50;
 	const [isUltimate, setIsUltimate] = useState(false);
+	const [isTimerActive, setIsTimerActive] = useState(false);
+	const [timerClicks, setTimerClicks] = useState(0);
+	const [timeLeft, setTimeLeft] = useState(60);
 
 	useEffect(() => {
 		if (grandmas <= 0) return;
@@ -101,6 +104,26 @@ export default function HomeScreen({ navigation }) {
 		}
 	};
 
+	useEffect(() => {
+		let timer;
+
+		if (isTimerActive && timeLeft == 60) {
+			timer = setInterval(() => {
+				setTimeLeft(prev => prev - 1)
+			}, 1000);
+		}
+		else {
+			setIsTimerActive(false);
+			setTimeLeft(60);
+			console.log("hovno");
+
+		}
+
+		return () => {
+			clearInterval(timer);
+		}
+	}, [isTimerActive])
+
 	return (
 		<View style={styles.container}>
 			{
@@ -111,6 +134,7 @@ export default function HomeScreen({ navigation }) {
 			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per click: +{cookiesPerClick}</Text>
 			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Per second: +{grandmas}</Text>
 			<Text style={isUltimate ? styles.whiteMeta : styles.meta}>Grandmas: {grandmas}</Text>
+			<Text style={isUltimate ? styles.whiteScore : styles.score}>{timeLeft}</Text>
 
 			<TouchableOpacity
 				onPress={handleCookiePress}
@@ -134,6 +158,11 @@ export default function HomeScreen({ navigation }) {
 					Go To Store
 				</Text>
 			</TouchableOpacity>
+			<TouchableOpacity style={{ ...globalStyles.button, marginTop: 10 }}>
+				<Text style={globalStyles.buttonText} onPress={() => { setIsTimerActive(true) }}>
+					Start timer
+				</Text>
+			</TouchableOpacity>
 			{
 				items.find(({ name }) => name === "Monster") &&
 				<Image
@@ -148,6 +177,7 @@ export default function HomeScreen({ navigation }) {
 					resizeMode="contain"
 				/>
 			}
+
 		</View>
 	);
 }
